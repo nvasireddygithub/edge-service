@@ -15,6 +15,8 @@ spring:
   cloud:
     config:
       uri: http://localhost:8888
+      username: user
+      password: password
       request-connect-timeout: 5000 # 5s
       request-read-timeout: 5000 # 5s
       fail-fast: false # In production, set to true
@@ -33,6 +35,7 @@ spring:
           max-life-time: 60s
       default-filters:
         - SaveSession
+        - TokenRelay
         - name: RequestRateLimiter
           args:
             redis-rate-limiter:
@@ -51,6 +54,10 @@ spring:
               factor: 2
               basedOnPreviousValue: false
       routes:
+        - id: spa-route
+          uri: ${SPA_URL:http://localhost:9004}
+          predicates:
+            - Path=/,/*.css,/*.js,/favicon.ico
         - id: catalog-route
           uri: ${CATALOG_SERVICE_URL:http://localhost:9001}/books
           predicates:
@@ -78,6 +85,19 @@ spring:
     timeout: 10m
     redis:
       namespace: polar:edge
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: edge-service
+            client-secret: polar-keycloak-secret
+            scope:
+            - openid
+            - roles
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8080/realms/PolarBookshop    
         
 resilience4j:
   circuitbreaker:
@@ -91,7 +111,36 @@ resilience4j:
     configs:
       default:
         timeoutDuration: 5s
-        
-#logging:
-#  level:
-#    io.github.resilience4j: DEBUG
+
+logging:
+  group:
+    circuitbreaker: io.github.resilience4j, org.springframework.cloud.circuitbreaker
+  level:
+    circuitbreaker: info
+  pattern:
+    level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
+
+info:
+  system: Polar Bookshop
+      
+management:
+  endpoints:
+    web:
+      exposure:
+        include: configprops, env, gateway, health, heapdump, info, loggers, mappings, prometheus
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+    java:
+      enabled: true
+    os:
+      enabled: true          
+  metrics:
+    tags:
+      application: ${spring.application.name}      
