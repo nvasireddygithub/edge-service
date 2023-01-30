@@ -16,6 +16,7 @@ ext {
 	set('otelVersion', "1.12.1")
 	set('springCloudVersion', "2021.0.5")
 	set('testcontainersVersion', "1.17.2")
+	set('testKeycloakVersion', "2.1.2")
 }
 
 dependencies {
@@ -39,6 +40,7 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	testImplementation 'io.projectreactor:reactor-test'
 	testImplementation 'org.testcontainers:junit-jupiter'
+	testImplementation "com.github.dasniko:testcontainers-keycloak:${testKeycloakVersion}"
 }
 
 dependencyManagement {
