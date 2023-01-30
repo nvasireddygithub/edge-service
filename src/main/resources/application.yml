@@ -97,7 +97,7 @@ spring:
             - roles
         provider:
           keycloak:
-            issuer-uri: http://localhost:8080/realms/PolarBookshop    
+            issuer-uri: ${KEYCLOAK_URL:http://localhost:8080}/realms/PolarBookshop    
         
 resilience4j:
   circuitbreaker:
